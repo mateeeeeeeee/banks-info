@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from decouple import config
+import os
 
 
 
@@ -23,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-r0-@e2^nw#wkfq3gq20*fv%o!w0=ks$z9=#7e+32#yn&z_ev%%'
+SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'django_filters',
 
     'rest_framework',
     'allauth',
@@ -51,6 +53,11 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',
 
     'users',
+    'banks',
+    'external_data',
+    'frontend',
+
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -68,13 +75,15 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'banks_info.urls'
 
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -82,7 +91,6 @@ TEMPLATES = [
         },
     },
 ]
-
 WSGI_APPLICATION = 'banks_info.wsgi.application'
 
 
@@ -114,6 +122,17 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+
+
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ]
+}
 
 
 # Internationalization
@@ -159,3 +178,14 @@ ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"
+ACCOUNT_ADAPTER = 'users.adapters.CustomAccountAdapter'
+ACCOUNT_UNIQUE_EMAIL = True
+LOGIN_URL = '/login/'
+
+REST_AUTH_REGISTER_PERMISSION_CLASSES = [
+    'rest_framework.permissions.AllowAny',
+]
+
+REST_AUTH_REGISTER_SERIALIZERS = {
+    'REGISTER_SERIALIZER': 'users.serializers.CustomRegisterSerializer',
+}

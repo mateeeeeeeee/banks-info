@@ -17,9 +17,42 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from allauth.account.views import confirm_email
+from users.views import CustomRegisterView
+from rest_framework.routers import DefaultRouter
+from external_data.views import EconomicIndicatorListView
+from frontend.views import home
+from frontend.views import CustomConfirmEmailView, email_confirmed
+
+router = DefaultRouter()
+
+path('api/auth/account-confirm-email/<str:key>/', CustomConfirmEmailView.as_view(), name='account_confirm_email'),
+path('email-confirmed/', email_confirmed, name='email_confirmed'),
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/auth/', include('dj_rest_auth.urls')),  # login/logout
-    path('api/auth/registration/', include('dj_rest_auth.registration.urls')),  # registration
+
+    # Auth URLs
+    path('api/auth/', include('dj_rest_auth.urls')),
+
+    # Override registration with your custom one
+    path('api/auth/registration/', CustomRegisterView.as_view(), name='rest_register'),
+
+    # Confirm email
+    path('api/auth/account-confirm-email/<str:key>/', CustomConfirmEmailView.as_view(), name='account_confirm_email'),
+    path('email-confirmed/', email_confirmed, name='email_confirmed'),
+
+    # Swagger docs
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+
+    path('accounts/', include('allauth.urls')),
+    path('api/', include('banks.urls')),
+
+    path('api/economic-indicators/', EconomicIndicatorListView.as_view(), name='economic-indicators'),
+
+    # Front
+    path('', home, name='home'),
+    path('', include('frontend.urls')),
 ]

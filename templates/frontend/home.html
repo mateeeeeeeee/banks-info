@@ -1,0 +1,92 @@
+{% extends "frontend/base.html" %}
+{% block title %}Home - Bank & Econ Data{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-3">Economic Indicators</h2>
+
+  <form id="filter-form" class="row g-3 mb-4" method="get" action=".">
+    <div class="col-md-3">
+      <input type="text" name="country" class="form-control" placeholder="Country" value="{{ request.GET.country|default:'' }}">
+    </div>
+    <div class="col-md-3">
+      <input type="text" name="indicator_code" class="form-control" placeholder="Indicator Code or Name" value="{{ request.GET.indicator_code|default:'' }}">
+    </div>
+    <div class="col-md-2">
+      <input type="number" name="year_from" class="form-control" placeholder="Year From" value="{{ request.GET.year_from|default:'' }}">
+    </div>
+    <div class="col-md-2">
+      <input type="number" name="year_to" class="form-control" placeholder="Year To" value="{{ request.GET.year_to|default:'' }}">
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-primary w-100">Search</button>
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Country</th>
+          <th>Indicator Code</th>
+          <th>Indicator Name</th>
+          <th>Year</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for indicator in page_obj %}
+        <tr>
+          <td>{{ indicator.country }}</td>
+          <td>{{ indicator.indicator_code }}</td>
+          <td>{{ indicator.indicator_name }}</td>
+          <td>{{ indicator.year }}</td>
+          <td>{{ indicator.value }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center">No indicators found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+<nav aria-label="Pagination">
+  <ul class="pagination">
+    {% if page_obj.has_previous %}
+    <li class="page-item">
+      <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+    {% endif %}
+
+    {# Sliding window logic for pages #}
+    {% for num in page_obj.paginator.page_range %}
+      {% if num >= page_obj.number|add:'-5' and num <= page_obj.number|add:'5' %}
+        <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+          <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+        </li>
+      {% elif num == 1 or num == page_obj.paginator.num_pages %}
+        <li class="page-item">
+          <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+        </li>
+      {% elif num == page_obj.number|add:'-6' or num == page_obj.number|add:'6' %}
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+    <li class="page-item">
+      <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+</div>
+{% endblock %}

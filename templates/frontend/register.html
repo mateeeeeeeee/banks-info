@@ -1,0 +1,99 @@
+{% extends "frontend/base.html" %}
+{% block title %}Register - Bank & Econ Data{% endblock %}
+
+{% block content %}
+<h2>Register</h2>
+<div id="alert" class="alert alert-danger d-none"></div>
+
+<form id="register-form" class="mt-4">
+    <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <input type="text" id="username" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label for="email" class="form-label">Email address</label>
+        <input type="email" id="email" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label for="phone_number" class="form-label">Phone Number</label>
+        <input type="text" id="phone_number" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label for="password1" class="form-label">Password</label>
+        <input type="password" id="password1" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label for="password2" class="form-label">Confirm Password</label>
+        <input type="password" id="password2" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Register</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+document.getElementById('register-form').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const username = document.getElementById('username').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone_number = document.getElementById('phone_number').value.trim();
+    const password1 = document.getElementById('password1').value;
+    const password2 = document.getElementById('password2').value;
+
+    const alertBox = document.getElementById('alert');
+    alertBox.classList.add('d-none');
+
+    if(password1 !== password2){
+        alertBox.textContent = 'Passwords do not match';
+        alertBox.classList.remove('d-none');
+        return;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    try {
+        const response = await fetch('/api/auth/registration/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({username, email, phone_number, password1, password2}),
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            let errorMessages = [];
+            for (const key in data) {
+                errorMessages.push(`${key}: ${data[key]}`);
+            }
+            alertBox.textContent = errorMessages.join('\n');
+            alertBox.classList.remove('d-none');
+            return;
+        }
+
+        // Success - redirect to login
+        window.location.href = '/email-confirmation-sent/';
+    } catch (error) {
+        alertBox.textContent = 'Network error';
+        alertBox.classList.remove('d-none');
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "frontend/base.html" %}
+{% block title %}Login - Bank & Econ Data{% endblock %}
+
+{% block content %}
+<h2>Login</h2>
+<div id="alert" class="alert alert-danger d-none"></div>
+
+<form id="login-form" class="mt-4">
+    <div class="mb-3">
+        <label for="email" class="form-label">Email address</label>
+        <input type="email" id="email" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" id="password" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Login</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('login-form').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    const alertBox = document.getElementById('alert');
+    alertBox.classList.add('d-none');
+
+    try {
+        const response = await fetch('/api/auth/login/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email, password}),
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            alertBox.textContent = data.detail || 'Login failed';
+            alertBox.classList.remove('d-none');
+            return;
+        }
+
+        const data = await response.json();
+        localStorage.setItem('authToken', data.access_token || data.key || data.access || data.token);
+
+        window.location.href = '/';
+    } catch (error) {
+        alertBox.textContent = 'Network error';
+        alertBox.classList.remove('d-none');
+    }
+});
+</script>
+{% endblock %}
