@@ -76,7 +76,7 @@ python manage.py createsuperuser
 7. ეკონომიკური მონაცემების იმპორტი (World Bank API-დან):
 
 ```bash
-python manage.py import_world_bank_data
+python manage.py import_world_data
 ```
 
 8. სერვერის გაშვება:
